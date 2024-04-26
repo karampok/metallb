@@ -552,6 +552,12 @@ spec:
                 description: To set if the BGPPeer is multi-hops away. Needed for
                   FRR mode only.
                 type: boolean
+              gracefulRestart:
+                description: |-
+                  GracefulRestart allows BGP peer to continue to forward data packets along
+                  known routes while the routing protocol information is being restored.
+                  Needed for FRR mode only.
+                type: boolean
               holdTime:
                 description: Requested BGP hold time, per RFC4271.
                 type: string
