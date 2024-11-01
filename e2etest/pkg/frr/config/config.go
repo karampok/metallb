@@ -38,9 +38,11 @@ debug bgp nht
 debug bgp updates in
 debug bgp updates out
 debug bgp zebra
+debug bgp bfd
 debug bfd peer
 debug bfd zebra
 debug bfd network
+debug bfd distributed
 !
 ip nht resolve-via-default
 ipv6 nht resolve-via-default
@@ -49,6 +51,10 @@ log file /tmp/frr.log debugging
 log timestamp precision 3
 route-map RMAP permit 10
 set ipv6 next-hop prefer-global
+bfd
+  profile simple
+	passive-mode
+exit
 {{$ROUTERASN:=.ASN}}
 router bgp {{$ROUTERASN}}
   bgp router-id {{.RouterID}}
@@ -57,14 +63,16 @@ router bgp {{$ROUTERASN}}
   no bgp default ipv4-unicast
 {{range .Neighbors }}
   neighbor {{.Addr}} remote-as {{.ASN}}
+  neighbor {{.Addr}} timers delayopen 240
+  neighbor {{.Addr}} passive
   {{- if and (ne .ASN $ROUTERASN) (.MultiHop) }}
   neighbor {{.Addr}} ebgp-multihop
   {{- end }}
   {{ if .Password -}}
   neighbor {{.Addr}} password {{.Password}}
   {{- end }}
-{{- if .BFDEnabled }} 
-  neighbor {{.Addr}} bfd
+{{- if .BFDEnabled }}
+  neighbor {{.Addr}} bfd profile simple
 {{- end -}}
 {{- end }}
 {{- if ne (len .AcceptV4Neighbors) 0}}

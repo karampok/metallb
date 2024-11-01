@@ -152,9 +152,15 @@ func NeighborConnected(neighborJSON string) (bool, error) {
 // To be used for debugging in order to print the status of the frr instance.
 func RawDump(exec executor.Executor, filesToDump ...string) (string, error) {
 	allerrs := errors.New("")
+	res := "####### Show version\n"
+	out, err := exec.Exec("vtysh", "-c", "show version")
+	if err != nil {
+		allerrs = errors.Join(allerrs, fmt.Errorf("\nFailed exec show version: %v", err))
+	}
+	res += out
 
-	res := "####### Show running config\n"
-	out, err := exec.Exec("vtysh", "-c", "show running-config")
+	res += "####### Show running config\n"
+	out, err = exec.Exec("vtysh", "-c", "show running-config")
 	if err != nil {
 		allerrs = errors.Join(allerrs, fmt.Errorf("\nFailed exec show bgp neighbor: %v", err))
 	}
@@ -196,6 +202,12 @@ func RawDump(exec executor.Executor, filesToDump ...string) (string, error) {
 			}
 			res += out
 		}
+		res += "####### IP for any crashinfo files\n"
+		out, err = exec.Exec("bash", "-c", "ip link ; ip a s; ss -tuln")
+		if err != nil {
+			allerrs = errors.Join(allerrs, fmt.Errorf("\nFailed exec show bfd peer: %v", err))
+		}
+		res += out
 	}
 
 	if allerrs.Error() == "" {
