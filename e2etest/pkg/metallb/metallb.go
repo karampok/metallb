@@ -50,6 +50,11 @@ func RestartSpeakerPods(cs clientset.Interface) error {
 	return wait.PollUntilContextTimeout(context.Background(), 100*time.Millisecond, 10*time.Second, false, func(context.Context) (bool, error) {
 		npods, err := SpeakerPods(cs)
 		if err != nil {
+			// During pod restart, it's expected that no speaker pods exist temporarily.
+			// Continue polling instead of failing immediately.
+			if err.Error() == "no speaker pods found" {
+				return false, nil
+			}
 			return false, err
 		}
 		for _, p := range npods {
